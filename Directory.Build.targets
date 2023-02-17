@@ -1,0 +1,20 @@
+﻿<Project>
+  <PropertyGroup Condition="'$(GameDir)' != ''">
+    <!-- Try to find the directory on our own -->
+    <GameManaged Condition="'$(GameManaged)' == ''">$([System.IO.Directory]::GetDirectories(`$(GameDir)`, `*_Data`)[0])\Managed</GameManaged>
+    <GameExecutable Condition="'$(GameExecutable)' == ''">$(GameDir)\$([System.IO.Path]::GetDirectoryName(`$(GameDir)`)).exe</GameExecutable>
+    <PluginsFolder Condition="'$(PluginsFolder)' == ''">$(GameDir)\BepInEx\plugins</PluginsFolder>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Destination1>$(PluginsFolder)\akarnokd - $(Description)</Destination1>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- Include <GameModule> items -->
+    <Reference Include="@(GameModule)">
+      <HintPath>$(GameManaged)\%(Identity).dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

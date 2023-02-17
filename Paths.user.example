@@ -1,0 +1,6 @@
+﻿<Project>
+  <PropertyGroup>
+    <!-- Directory that the game is in -->
+    <GameDir>C:\Program Files\Steam\steamapps\common\Plan B Terraform</GameDir>
+  </PropertyGroup>
+</Project>
