@@ -4,8 +4,8 @@
 using BepInEx;
 using BepInEx.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using UnityEngine;
 
 namespace FeatMultiplayer
@@ -15,6 +15,9 @@ namespace FeatMultiplayer
         static ManualLogSource globalLogger;
 
         static object logExclusion = new object();
+
+        // This is a ugly workaround for the current homebrew-logsystem
+        private static Dictionary<string, StreamWriter> logWriters = new();
 
         void InitLogging()
         {
@@ -63,46 +66,40 @@ namespace FeatMultiplayer
                         globalLogger.LogFatal(message);
                     }
                 }
-            } 
+            }
             catch (Exception ex)
             {
                 globalLogger.LogError(ex);
             }
         }
 
+        static string GetLogLevelName(int level)
+            => level switch
+            {
+                0 => "DEBUG  ",
+                1 => "INFO   ",
+                2 => "WARNING",
+                3 => "ERROR  ",
+                4 => "FATAL  ",
+                _ => "????????"
+            };
+
         static void AppendLog(string logFile, int level, object message)
         {
             lock (logExclusion)
             {
                 var path = Path.Combine(Application.persistentDataPath, logFile);
-                
-                var sb = new StringBuilder();
+                if (!logWriters.TryGetValue(path, out var logger))
+                {
+                    logger = new StreamWriter(path)
+                    {
+                        AutoFlush = true
+                    };
 
-                sb.Append(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
-                if (level == 0)
-                {
-                    sb.Append(" | DEBUG   | ");
+                    logWriters.Add(path, logger);
                 }
-                else if (level == 1)
-                {
-                    sb.Append(" | INFO    | ");
-                }
-                else if (level == 2)
-                {
-                    sb.Append(" | WARNING | ");
-                }
-                else if (level == 3)
-                {
-                    sb.Append(" | ERROR   | ");
-                }
-                else if (level == 4)
-                {
-                    sb.Append(" | FATAL   | ");
-                }
-                sb.Append(message);
-                sb.AppendLine();
 
-                File.AppendAllText(path, sb.ToString());
+                logger.WriteLine("{0} | {1} | {2}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), GetLogLevelName(level), message);
             }
         }
 
